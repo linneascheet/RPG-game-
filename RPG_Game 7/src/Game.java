@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import javax.swing.*;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.util.Scanner;
+import java.io.IOException;
 
 public class Game extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 
@@ -25,6 +30,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     private boolean reset;
     private boolean gameOver;
     private ImageIcon gifImage;
+    private File saveFile;
 
 
 
@@ -43,7 +49,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         startBg = new ImageIcon("startbackground.png");
         chooseBg = new ImageIcon("classroom1.png");
         welcome = "Welcome to Linnea's School Game";
-        
+        saveFile=new File("saved_file2.0.txt");
         time = System.currentTimeMillis();
         enemies = setEs();
         System.out.println(enemies.size());
@@ -61,6 +67,56 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         });
         enemyFireTimer.start(); // Start the timer for automatic firing
     }
+
+    public void createFile() {
+        try {
+           
+            if (saveFile.createNewFile()) {
+                System.out.println("Successfully created file!");
+            } else {
+                System.out.println("File already exists");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void readFile(){
+        Scanner sc;
+        try {
+        sc = new Scanner (saveFile);
+        while(sc.hasNext()){
+            System.out.println(sc.next());
+        }
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    }
+}
+    
+
+    public void writeToFile(){
+        FileWriter myWriter;
+        try{
+            myWriter = new FileWriter(saveFile);
+
+        
+        // write what you want to dave
+        if(enemies.isEmpty()){ 
+            myWriter.write("win");
+        }
+            else{
+                myWriter.write("You have " +enemies.size()+" enemies left");
+        }
+        myWriter.close();
+        System.out.println("Successfully wrote to file");
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+            
+        
+    
     public void reset() {
         lives=10;
         resetCharacter();
