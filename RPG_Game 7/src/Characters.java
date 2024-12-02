@@ -7,7 +7,7 @@ public class Characters {
     private ImageIcon pic;
     private Weapons weap;
     private ArrayList<Weapons> weaponList;
-    private int lives = 3;
+    private int score = 0;
 
     public void setPosition(int x, int y) {
         this.x = x;
@@ -15,15 +15,15 @@ public class Characters {
     }
 
     public void takeDamage() {
-        this.lives--;  // Decrease lives by 1 when damage is taken
-        if (this.lives <= 0) {
+        this.score--;  // Decrease lives by 1 when damage is taken
+        if (this.score <= 0) {
            
         }
     }
     
     
-    public int getLives() {
-        return lives;
+    public int getScore() {
+        return score;
     }
 
     public Characters() {

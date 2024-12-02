@@ -1,26 +1,27 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-
-import javax.swing.*;
-import java.util.Queue;
-import java.util.LinkedList;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.util.Scanner;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Scanner;
+import javax.swing.*;
 
 public class Game extends JPanel implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 
     private BufferedImage back;
-    private int key, x, y, lives;
+    private int key, x, y, score;
     private ArrayList<Characters> charList;
+    private ArrayList<Integer> highScores; 
     private String screen;
     private Characters player;
     private ImageIcon startBg;
     private ImageIcon chooseBg; 
+    private ImageIcon gameBg;
     private String welcome;
     private double time;
     private int i;
@@ -43,30 +44,70 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         x = 0;
         y = 0;
         charList = setCharList();
-        player = new Characters(); // Initialize your player character
+        player = new Characters();
         screen = "start";
         rangedWeap = new ArrayList<Ranged>();
         startBg = new ImageIcon("startbackground.png");
         chooseBg = new ImageIcon("classroom1.png");
+        gameBg = new ImageIcon("creepyschool.jpg");
         welcome = "Welcome to Linnea's School Game";
-        saveFile=new File("saved_file2.0.txt");
+        saveFile = new File("saved_file2.0.txt");
         time = System.currentTimeMillis();
         enemies = setEs();
-        System.out.println(enemies.size());
-        lives=10;
-        reset=false;
+        score = 3;
+        reset = false;
         gameOver = false;
         gifImage = new ImageIcon("giphy.gif");
+        highScores = new ArrayList<>();
+        loadScores();
 
-
+        // Create the timer but don't start it yet
         enemyFireTimer = new Timer(2000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 fireEnemyWeapon();
             }
         });
-        enemyFireTimer.start(); // Start the timer for automatic firing
     }
+
+    private void loadScores() {
+        try (Scanner scanner = new Scanner(saveFile)) {
+            while (scanner.hasNextInt()) {
+                highScores.add(scanner.nextInt());
+            }
+            System.out.println("Loaded scores: " + highScores);
+        } catch (FileNotFoundException e) {
+            System.out.println("Save file not found. Creating a new one.");
+            createFile();
+        }
+    }
+    private void saveScores() {
+        try (FileWriter writer = new FileWriter(saveFile)) {
+            // Write high scores with an identifier
+            writer.write("High Scores:\n");
+            for (int i = 0; i < highScores.size(); i++) {
+                writer.write((i + 1) + ". " + highScores.get(i) + "\n");
+            }
+    
+            System.out.println("Scores saved: " + highScores);
+        } catch (IOException e) {
+            System.out.println("Error writing scores to file.");
+            e.printStackTrace();
+        }
+    }
+    
+
+    private void updateScores(int newScore) {
+        highScores.add(newScore);
+        highScores.sort((a, b) -> b - a); // Sort in descending order
+        if (highScores.size() > 5) {
+            highScores = new ArrayList<>(highScores.subList(0, 5)); // Keep top 5 scores
+        }
+        saveScores();
+    }
+    
+    
+    
 
     public void createFile() {
         try {
@@ -95,35 +136,36 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
 }
     
 
-    public void writeToFile(){
-        FileWriter myWriter;
-        try{
-            myWriter = new FileWriter(saveFile);
-
-        
-        // write what you want to dave
-        if(enemies.isEmpty()){ 
-            myWriter.write("win");
+public void writeToFile() {
+    try (FileWriter myWriter = new FileWriter(saveFile)) {
+        if (enemies.isEmpty()) { 
+            // Save the high scores instead of just "win"
+            myWriter.write("High Scores:\n");
+            for (int highScore : highScores) {
+                myWriter.write(highScore + "\n");
+            }
+        } else {
+            myWriter.write("You have " + enemies.size() + " enemies left\n");
         }
-            else{
-                myWriter.write("You have " +enemies.size()+" enemies left");
-        }
-        myWriter.close();
-        System.out.println("Successfully wrote to file");
+        System.out.println("Successfully wrote to file.");
     } catch (IOException e) {
         e.printStackTrace();
     }
 }
+
             
         
     
-    public void reset() {
-        lives=10;
-        resetCharacter();
-        resetEnemy();
-        gameOver = false;
+public void reset() {
+    score = 0;
+    resetCharacter();
+    enemies = setEs();
+    gameOver = false;
+    screen = "start";
+    // Ensure timer is stopped on reset
+    enemyFireTimer.stop();
+}
 
-    }
     public void resetCharacter() {
         player.setPosition(800, 300);
     }
@@ -132,11 +174,13 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     }
 
 
+
     public Queue<Enemy> setEs() {
         Queue<Enemy> temp = new LinkedList<>();
-        temp.add(new Woolweaver(300, 200));
-        temp.add(new Woolweaver(200, 200));
-        temp.add(new Woolweaver(100, 200));
+        temp.add(new Woolweaver(300, 500));
+        temp.add(new Woolweaver(200, 500));
+        temp.add(new Woolweaver(100, 500));
+        temp.add(new Woolweaver(30, 500));
 
         return temp;
     }
@@ -226,21 +270,36 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     }
     
     public void drawGameScreen(Graphics g2d) {
+        g2d.drawImage(gameBg.getImage(), 0, 0, getWidth(), getHeight(), this);
+
         // Draw player
 
-        if (gameOver) {
-            // If the game is over, show "YOU LOSE" message and don't update the game
-            g2d.setFont(new Font("Impact", Font.BOLD, 100));
-            g2d.setColor(Color.RED);
-            g2d.drawString("YOU LOSE", 200, 300);
-            return;
-        }
+        if (enemies.isEmpty()) {
+    // Display "YOU WIN" message
+    g2d.setFont(new Font("Impact", Font.BOLD, 100));
+    g2d.setColor(Color.GREEN);
+    g2d.drawString("YOU WIN", 200, 300);
+
+    // Update and save the player's score
+    if (!highScores.contains(score)) { // Avoid updating repeatedly
+        updateScores(score); // Add the player's score to the high scores
+    }
+
+    // Display high score prompt
+    g2d.setFont(new Font("Impact", Font.PLAIN, 40));
+    g2d.setColor(Color.YELLOW);
+    g2d.drawString("Press R to Restart", 200, 400);
+    g2d.drawString("Press H to View High Scores", 200, 450);
+
+    return;
+}
+        
         if (player != null) {
             player.drawChar(g2d);
         }
         g2d.setFont(new Font("Times New Roman", Font.BOLD, 20));
         g2d.setColor(Color.WHITE);
-        g2d.drawString("Lives: " + lives, 800, 200);
+        g2d.drawString("Score: " + score, 800, 200);
         
         ArrayList<Ranged> projectilesToRemove = new ArrayList<>();
         
@@ -257,9 +316,9 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
             // Check for collision with player (if it's a Sword projectile)
             if (projectile instanceof Sword && checkCollision(projectile, player)) {
                 projectilesToRemove.add(projectile);
-                decreaseLives();
+                decreaseScore();
             } 
-            if (lives == 0) {
+            if (score == 0) {
                 g2d.clearRect(0,0,getSize().width,getSize().height);
                 g2d.drawString("YOU LOSE", 200, 200);
             } 
@@ -271,8 +330,9 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
                     currentEnemy.takeDamage();
                     
                     // If enemy's lives are zero, remove it from the queue
-                    if (currentEnemy.getLives() <= 0) {
+                    if (currentEnemy.getScore() <= 0) {
                         enemies.poll(); // Remove defeated enemy from the queue
+                        score += 1;
                     }
                 }
             }
@@ -292,13 +352,29 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         }
     }
 
-    private void decreaseLives() {
-        lives--;
-        if (lives <= 0) {
+    private void decreaseScore() {
+        score--;
+        if (score <= 0) {
             gameOver = true; // Set game over flag to true when lives reach 0
             enemyFireTimer.stop(); // Stop enemy from firing
         }
     }
+
+    public void drawHighscoreScreen(Graphics g2d) {
+        g2d.setFont(new Font("Impact", Font.BOLD, 50));
+        g2d.setColor(Color.YELLOW);
+        g2d.drawString("High Scores", 400, 100);
+    
+        g2d.setFont(new Font("Impact", Font.PLAIN, 30));
+        int y = 200; // Starting y-coordinate for scores
+        for (int i = 0; i < highScores.size(); i++) {
+            g2d.drawString((i + 1) + ". " + highScores.get(i), 400, y);
+            y += 50;
+        }
+    }
+    
+
+    
     
     
         
@@ -362,11 +438,36 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
                 break;
             case "game":
                 drawGameScreen(g2d);
-                break; // Added game case
+                break; 
+            case "highscores":
+                drawHighscoreScreen(g2d);
+                break;
+            case "win":
+                drawWinScreen(g2d);
+            break;
+                
             default:
                 break;
         }
     }
+    public void drawWinScreen(Graphics g2d) {
+        g2d.setFont(new Font("Impact", Font.BOLD, 100));
+        g2d.setColor(Color.GREEN);
+        g2d.drawString("YOU WIN!", 200, 300);
+    
+        g2d.setFont(new Font("Impact", Font.PLAIN, 40));
+        g2d.setColor(Color.YELLOW);
+        g2d.drawString("Final Score: " + score, 200, 400);
+    
+        // Display high score
+        int topScore = highScores.isEmpty() ? 0 : highScores.get(0);
+        g2d.drawString("High Score: " + topScore, 200, 450);
+    
+        g2d.drawString("Press R to Restart", 200, 500);
+        g2d.drawString("Press H to View High Scores", 200, 550);
+    }
+    
+    
 
     public void drawSelectScreen(Graphics g2d){
         if (player != null) {
@@ -403,9 +504,9 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         }
 
         public void takeDamage() {
-            this.lives--; // Decrease player lives
+            this.score--; // Decrease player lives
         
-            if (this.lives <= 0) {
+            if (this.score <= 0) {
                 System.out.println("Player has no lives left. Game over.");
                 // Add any additional game-over handling code here, like resetting the game or ending the session
             }
@@ -470,6 +571,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     
         if (key == 32) {
             screen = "choose"; // Switch to choose screen on space
+            enemyFireTimer.stop();
         }
 
         if (key == 38) { // Up arrow key
@@ -488,40 +590,56 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         if (key == 49) {
             screen = "selection";
             player = charList.get(0);
-            player.setPosition(800, 300); // Set position to (800, 300)
+            player.setPosition(800, 500); // Set position to (800, 300)
         }
         if (key == 50) {
             screen = "selection";
             player = charList.get(1);
-            player.setPosition(800, 300); // Set position to (800, 300)
+            player.setPosition(800, 500); // Set position to (800, 300)
         }
         if (key == 51) {
             screen = "selection";
             player = charList.get(2);
-            player.setPosition(800, 300); // Set position to (800, 300)
+            player.setPosition(800, 500); // Set position to (800, 300)
         }
         if (key == 52) {
             screen = "selection";
             player = charList.get(3);
-            player.setPosition(800, 300); // Set position to (800, 300)
+            player.setPosition(800, 500); // Set position to (800, 300)
         }
         if (key == 53) {
             screen = "selection";
             player = charList.get(4);
-            player.setPosition(800, 300); // Set position to (800, 300)
+            player.setPosition(800, 500); // Set position to (800, 300)
+        }
+        if (gameOver || enemies.isEmpty()) {
+            enemyFireTimer.stop();
+            if (key == KeyEvent.VK_R) {
+                reset();
+                screen = "game";
+                // Don't start timer until player presses Enter again
+            } else if (key == KeyEvent.VK_H) {
+                screen = "highscores";
+            }
         }
     
         // Add a key press to switch to game screen
-        if (key == KeyEvent.VK_ENTER) { // Press 'Enter' to start the game
+        if (key == KeyEvent.VK_ENTER) {
             if (player != null) {
                 screen = "game";
                 System.out.println("Switching to Game Screen");
-                enemyFireTimer.start(); // Ensure the timer starts only when in the game screen
+                // Only start enemy firing when entering game screen with a selected player
+                enemyFireTimer.start();
             } else {
                 System.out.println("No player selected. Cannot switch to game.");
             }
             repaint();
         }
+        if (key == KeyEvent.VK_H) { // Press 'H' to view high scores
+    screen = "highscores";
+    repaint();
+}
+
     
         if (key == 70) { // f key
             fireWeapon();

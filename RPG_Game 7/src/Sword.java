@@ -9,7 +9,7 @@ public class Sword extends Ranged {
 
     // Constructor with parameters
     public Sword(int x, int y) {
-        super(x, y, 100, 200, 59, 78, 156, new ImageIcon("sword.png")); // Calling the Ranged constructor, which calls Weapons
+        super(x, y, 90, 90, 59, 78, 156, new ImageIcon("sword.png")); // Calling the Ranged constructor, which calls Weapons
     }
 
     @Override

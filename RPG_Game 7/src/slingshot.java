@@ -7,7 +7,7 @@ public class slingshot extends Ranged {
     }
 
     public slingshot(int x, int y) {
-        super(x, y, 100, 100, 59,78, 156, new ImageIcon("slingshot.png")); // Set hammer image
+        super(x, y, 90, 90, 59,78, 156, new ImageIcon("slingshot.png")); // Set hammer image
     }
 
     @Override

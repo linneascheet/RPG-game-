@@ -1,6 +1,5 @@
 
 import java.util.ArrayList;
-
 import javax.swing.ImageIcon;
 
 
@@ -19,7 +18,7 @@ public String toString(){
     return "Woolweaver";
 }
 public Woolweaver(int x, int y){ 
-    super(x, y, 300, 200, 1000, 5, 10, 1, new ImageIcon("woolweaver.png"), new Sword(x+130,y), setList());
+    super(x, y, 320, 220, 1000, 5, 10, 1, new ImageIcon("woolweaver.png"), new Sword(x+130,y), setList());
         
         // Set the weapon's position based on the character's position
         super.getWeapon().setX(super.getX() + super.getWidth());
