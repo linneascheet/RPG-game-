@@ -32,6 +32,10 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     private boolean gameOver;
     private ImageIcon gifImage;
     private File saveFile;
+    private int currentLevel;
+    private ImageIcon level2Bg;
+    private Queue<Enemy> level2Enemies;
+
 
 
 
@@ -60,6 +64,9 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         gifImage = new ImageIcon("giphy.gif");
         highScores = new ArrayList<>();
         loadScores();
+        currentLevel = 1;
+        level2Bg = new ImageIcon("level2background.jpg"); // Add your level 2 background image
+        level2Enemies = new LinkedList<>();
 
         // Create the timer but don't start it yet
         enemyFireTimer = new Timer(2000, new ActionListener() {
@@ -70,25 +77,32 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         });
     }
 
-    private void loadScores() {
-        try (Scanner scanner = new Scanner(saveFile)) {
-            while (scanner.hasNextInt()) {
-                highScores.add(scanner.nextInt());
-            }
-            System.out.println("Loaded scores: " + highScores);
-        } catch (FileNotFoundException e) {
-            System.out.println("Save file not found. Creating a new one.");
-            createFile();
+    private void checkLevelTransition() {
+        if (currentLevel == 1 && player.getX() >= getWidth() - player.getWidth()) {
+            currentLevel = 2;
+            player.setPosition(50, player.getY()); // Reset player to left side
+            enemies = level2Enemies; // Switch to level 2 enemies
+            setupLevel2();
         }
     }
+
+    private void setupLevel2() {
+        level2Enemies.clear();
+        // Add different/harder enemies for level 2
+        level2Enemies.add(new Woolweaver(300, 300));
+        level2Enemies.add(new Woolweaver(200, 400));
+        level2Enemies.add(new Woolweaver(100, 200));
+        level2Enemies.add(new Woolweaver(400, 500));
+        level2Enemies.add(new Woolweaver(500, 300));
+        enemies = level2Enemies;
+    }
+
+
     private void saveScores() {
         try (FileWriter writer = new FileWriter(saveFile)) {
-            // Write high scores with an identifier
-            writer.write("High Scores:\n");
-            for (int i = 0; i < highScores.size(); i++) {
-                writer.write((i + 1) + ". " + highScores.get(i) + "\n");
+            for (int score : highScores) {
+                writer.write(score + "\n"); // Write only integers, one per line
             }
-    
             System.out.println("Scores saved: " + highScores);
         } catch (IOException e) {
             System.out.println("Error writing scores to file.");
@@ -96,33 +110,53 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         }
     }
     
+    private void loadScores() {
+        highScores.clear(); // Clear previous scores
+        if (!saveFile.exists()) {
+            createFile(); // Ensure the file is created if it doesn't exist
+            return;
+        }
+        try (Scanner scanner = new Scanner(saveFile)) {
+            while (scanner.hasNextInt()) {
+                highScores.add(scanner.nextInt()); // Read integers only
+            }
+            System.out.println("Loaded scores: " + highScores);
+        } catch (FileNotFoundException e) {
+            System.out.println("Save file not found.");
+        }
+    }
+    
 
     private void updateScores(int newScore) {
         highScores.add(newScore);
         highScores.sort((a, b) -> b - a); // Sort in descending order
-        if (highScores.size() > 5) {
-            highScores = new ArrayList<>(highScores.subList(0, 5)); // Keep top 5 scores
+        if (highScores.size() > 10) {
+            highScores = new ArrayList<>(highScores.subList(0, 10)); // Keep top 10 scores
         }
         saveScores();
     }
     
     
     
+    
 
     public void createFile() {
         try {
-           
             if (saveFile.createNewFile()) {
                 System.out.println("Successfully created file!");
+                highScores = new ArrayList<>();
+                for (int i = 0; i < 10; i++) {
+                    highScores.add(0); // Default scores
+                }
+                saveScores(); // Save the default scores
             } else {
-                System.out.println("File already exists");
+                System.out.println("File already exists.");
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
+    
     public void readFile(){
         Scanner sc;
         try {
@@ -270,37 +304,29 @@ public void reset() {
     }
     
     public void drawGameScreen(Graphics g2d) {
-        g2d.drawImage(gameBg.getImage(), 0, 0, getWidth(), getHeight(), this);
-
-        // Draw player
-
-        if (enemies.isEmpty()) {
-    // Display "YOU WIN" message
-    g2d.setFont(new Font("Impact", Font.BOLD, 100));
-    g2d.setColor(Color.GREEN);
-    g2d.drawString("YOU WIN", 200, 300);
-
-    // Update and save the player's score
-    if (!highScores.contains(score)) { // Avoid updating repeatedly
-        updateScores(score); // Add the player's score to the high scores
-    }
-
-    // Display high score prompt
-    g2d.setFont(new Font("Impact", Font.PLAIN, 40));
-    g2d.setColor(Color.YELLOW);
-    g2d.drawString("Press R to Restart", 200, 400);
-    g2d.drawString("Press H to View High Scores", 200, 450);
-
-    return;
-}
-        
-        if (player != null) {
-            player.drawChar(g2d);
+        // Draw appropriate background based on current level
+        if (currentLevel == 1) {
+            g2d.drawImage(gameBg.getImage(), 0, 0, getWidth(), getHeight(), this);
+        } else if (currentLevel == 2) {
+            g2d.drawImage(level2Bg.getImage(), 0, 0, getWidth(), getHeight(), this);
         }
+    
+        // Draw level indicator and score
         g2d.setFont(new Font("Times New Roman", Font.BOLD, 20));
         g2d.setColor(Color.WHITE);
+        g2d.drawString("Level: " + currentLevel, 700, 200);
         g2d.drawString("Score: " + score, 800, 200);
-        
+    
+        // Draw player and check level transition
+        if (player != null) {
+            player.drawChar(g2d);
+            if (currentLevel == 1 && player.getX() >= getWidth() - player.getWidth() && enemies.isEmpty()) {
+                currentLevel = 2;
+                player.setPosition(50, player.getY());
+                setupLevel2();
+            }
+        }
+    
         ArrayList<Ranged> projectilesToRemove = new ArrayList<>();
         
         // Handle projectiles and check for collisions
@@ -319,7 +345,7 @@ public void reset() {
                 decreaseScore();
             } 
             if (score == 0) {
-                g2d.clearRect(0,0,getSize().width,getSize().height);
+                g2d.clearRect(0, 0, getSize().width, getSize().height);
                 g2d.drawString("YOU LOSE", 200, 200);
             } 
             // Check for collision with enemy (if it's not a Sword projectile)
@@ -350,8 +376,30 @@ public void reset() {
         if (currentEnemy != null) {
             currentEnemy.drawChar(g2d);
         }
+    
+        // Handle level completion and game completion
+        if (currentLevel == 2 && enemies.isEmpty()) {
+            // Game complete - both levels finished
+            g2d.setFont(new Font("Impact", Font.BOLD, 100));
+            g2d.setColor(Color.GREEN);
+            g2d.drawString("GAME COMPLETE!", 200, 300);
+            
+            if (!highScores.contains(score)) {
+                updateScores(score);
+            }
+            
+            g2d.setFont(new Font("Impact", Font.PLAIN, 40));
+            g2d.setColor(Color.YELLOW);
+            g2d.drawString("Press R to Restart", 200, 400);
+            g2d.drawString("Press H to View High Scores", 200, 450);
+            return;
+        } else if (currentLevel == 1 && enemies.isEmpty()) {
+            // Level 1 complete - prompt to move right
+            g2d.setFont(new Font("Impact", Font.PLAIN, 30));
+            g2d.setColor(Color.YELLOW);
+            g2d.drawString("Level Complete! Move right to continue →", 400, 300);
+        }
     }
-
     private void decreaseScore() {
         score--;
         if (score <= 0) {
@@ -372,6 +420,7 @@ public void reset() {
             y += 50;
         }
     }
+    
     
 
     
