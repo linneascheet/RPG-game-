@@ -89,13 +89,13 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         player.setPosition(800, 300);
         rangedWeap.clear();
         level2Enemies = new LinkedList<>();
-        level2Enemies.add(new Woolweaver(300, 300));
-        level2Enemies.add(new Woolweaver(200, 400));
-        level2Enemies.add(new Woolweaver(100, 200));
-        level2Enemies.add(new Woolweaver(400, 500));
-        level2Enemies.add(new Woolweaver(500, 300));
-        level2Enemies.add(new Woolweaver(550, 100));
-        level2Enemies.add(new Woolweaver(600, 200));
+        level2Enemies.add(new Teacher(300, 300));
+        level2Enemies.add(new Teacher(200, 400));
+        level2Enemies.add(new Teacher(100, 200));
+        level2Enemies.add(new Teacher(400, 500));
+        level2Enemies.add(new Teacher(500, 300));
+        level2Enemies.add(new Teacher(550, 100));
+        level2Enemies.add(new Teacher(600, 200));
     
         // Set faster speeds for enemies in level 2
         for (Enemy enemy : level2Enemies) {
@@ -356,21 +356,13 @@ public void reset() {
         if (screen.equals("game")) {
             if (!enemies.isEmpty()) {
                 // Get only the first enemy to act
-              // Draw only the first (active) enemy
-Enemy currentEnemy = enemies.peek(); // Get the first enemy
-if (currentEnemy != null) {
-    currentEnemy.bounceMove(getWidth(), getHeight()); // Move the enemy
-    //currentEnemy.followPlayer(player.getX(), player.getY()); // Enemy follows the player
-    currentEnemy.drawChar(g2d); // Draw only the active enemy
-}
-
-        
-                // Draw all enemies but only the active one follows the player
-               
+                Enemy currentEnemy = enemies.peek();
+                if (currentEnemy != null) {
+                    currentEnemy.bounceMove(getWidth(), getHeight());
+                    currentEnemy.drawChar(g2d);
                 }
             }
-        
-        
+        }
     
         // Handle player character
         if (player != null) {
@@ -383,32 +375,53 @@ if (currentEnemy != null) {
         for (Ranged projectile : rangedWeap) {
             projectile.setX(projectile.getX() + (projectile instanceof Sword ? 10 : -15));
             projectile.drawWeap(g2d);
-        
-            // Check collision only with the current enemy
+    
+            // Check if this is an enemy projectile hitting the player
+            if (projectile instanceof Sword && checkCollision(projectile, player)) {
+                projectilesToRemove.add(projectile);
+                decreaseScore(); // Decrease player's score/lives
+                continue;
+            }
+    
+            // Check collision with current enemy
             Enemy currentEnemy = enemies.peek();
             if (currentEnemy != null && checkCollision(projectile, currentEnemy)) {
                 projectilesToRemove.add(projectile);
                 currentEnemy.takeDamage();
-        
+    
                 if (currentEnemy.getScore() <= 0) {
                     enemies.poll(); // Remove the defeated enemy
-                    score++;        // Update the score
+                    score++;       // Update the score
                 }
             }
-        
+    
             // Remove projectiles that leave the screen
             if (projectile.getX() < 0 || projectile.getX() > getWidth()) {
                 projectilesToRemove.add(projectile);
             }
         }
         rangedWeap.removeAll(projectilesToRemove);
-        
     
         // Draw current enemy
         Enemy currentEnemy = enemies.peek();
         if (currentEnemy != null) {
             currentEnemy.drawChar(g2d);
         }
+    
+        // Visualize hitboxes for debugging
+      //  g2d.setColor(Color.RED);
+       // for (Ranged projectile : rangedWeap) {
+        //    g2d.drawRect(projectile.getX(), projectile.getY(), 
+          //               projectile.getWidth(), projectile.getHeight());
+       // }
+       // if (player != null) {
+       //     g2d.drawRect(player.getX(), player.getY(), 
+       //                  player.getWidth(), player.getHeight());
+       // }
+      //  if (currentEnemy != null) {
+       //     g2d.drawRect(currentEnemy.getX(), currentEnemy.getY(),
+      //                   currentEnemy.getWidth(), currentEnemy.getHeight());
+      //  }
     
         // Display win message for level 2
         if (currentLevel == 2 && enemies.isEmpty()) {
@@ -427,7 +440,7 @@ if (currentEnemy != null) {
             g2d.setColor(Color.YELLOW);
             g2d.drawString("Level Complete! Move right to continue →", 400, 300);
         }
-    }        
+    }
     
 
     private void decreaseScore() {
