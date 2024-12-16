@@ -62,41 +62,54 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         reset = false;
         gameOver = false;
         gifImage = new ImageIcon("giphy.gif");
+       
         highScores = new ArrayList<>();
         loadScores();
         currentLevel = 1;
-        level2Bg = new ImageIcon("level2background.jpg"); // Add your level 2 background image
+        level2Bg = new ImageIcon("school2.png"); // Add your level 2 background image
         level2Enemies = new LinkedList<>();
-
         // Create the timer but don't start it yet
         enemyFireTimer = new Timer(2000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                fireEnemyWeapon();
+                fireEnemyWeapon(); // Calls the updated method that includes following and firing
             }
         });
+        
     }
 
-    private void checkLevelTransition() {
-        if (currentLevel == 1 && player.getX() >= getWidth() - player.getWidth()) {
+    public void checkLevelTransition() {
+        if (currentLevel == 1 && enemies.isEmpty() && player.getX() >= getWidth() - player.getWidth()) {
             currentLevel = 2;
-            player.setPosition(50, player.getY()); // Reset player to left side
-            enemies = level2Enemies; // Switch to level 2 enemies
             setupLevel2();
         }
     }
 
-    private void setupLevel2() {
-        level2Enemies.clear();
-        // Add different/harder enemies for level 2
+    public void setupLevel2() {
+        player.setPosition(800, 300);
+        rangedWeap.clear();
+        level2Enemies = new LinkedList<>();
         level2Enemies.add(new Woolweaver(300, 300));
         level2Enemies.add(new Woolweaver(200, 400));
         level2Enemies.add(new Woolweaver(100, 200));
         level2Enemies.add(new Woolweaver(400, 500));
         level2Enemies.add(new Woolweaver(500, 300));
+        level2Enemies.add(new Woolweaver(550, 100));
+        level2Enemies.add(new Woolweaver(600, 200));
+    
+        // Set faster speeds for enemies in level 2
+        for (Enemy enemy : level2Enemies) {
+            enemy.setSpeed(8); // Increase speed (adjust as needed)
+        }
+    
         enemies = level2Enemies;
+        gameOver = false;
+        reset = false;
+        enemyFireTimer.restart();
     }
+    
 
+    
 
     private void saveScores() {
         try (FileWriter writer = new FileWriter(saveFile)) {
@@ -135,6 +148,17 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         }
         saveScores();
     }
+   // public void updateEnemyActions() {
+      //  Enemy currentEnemy = enemies.peek(); // Get the current enemy
+      //  if (currentEnemy != null) {
+            // Make the enemy bounce around
+          //  currentEnemy.bounceMove(getWidth(), getHeight());
+    
+            // Make the enemy fire projectiles
+          //  fireEnemyWeapon();
+       // }
+   // }
+    
     
     
     
@@ -191,12 +215,14 @@ public void writeToFile() {
         
     
 public void reset() {
-    score = 0;
+    // Reset entire game state
+    score = 3;
+    currentLevel = 1;
     resetCharacter();
     enemies = setEs();
+    rangedWeap.clear();
     gameOver = false;
     screen = "start";
-    // Ensure timer is stopped on reset
     enemyFireTimer.stop();
 }
 
@@ -273,10 +299,19 @@ public void reset() {
     public void drawChooseScreen(Graphics g2d) {
         g2d.drawImage(chooseBg.getImage(), 0, 0, getWidth(), getHeight(), this);
         g2d.setFont(new Font("Impact", Font.BOLD, 50));
-        g2d.setColor(Color.WHITE);
+        g2d.setColor(Color.ORANGE);
         int gifX = 460; // X-coordinate for the GIF
         int gifY = 100; // Y-coordinate for the GIF
+
         g2d.drawImage(gifImage.getImage(), gifX, gifY, this);
+        ImageIcon buttonImage = new ImageIcon("notebook1.png"); // Load the image
+        g2d.drawImage(buttonImage.getImage(), 0, 350, 300, 200, this); // Draw the image at specified location
+        g2d.drawImage(buttonImage.getImage(), 405, 350, 300, 200, this); // Draw the image at specified location
+        g2d.drawImage(buttonImage.getImage(), 805, 350, 320, 200, this); // Draw the image at specified location
+        g2d.drawImage(buttonImage.getImage(), 1205, 350, 320, 200, this); // Draw the image at specified location
+
+
+       
         g2d.drawString("press 1", 50, 450);
         g2d.drawString("press 2", 450, 450);
         g2d.drawString("press 3", 850, 450);
@@ -285,7 +320,7 @@ public void reset() {
     
 
         //g2d.drawString("Select your character to begin!", 400, 150);
-        g2d.setColor(Color.WHITE);
+        g2d.setColor(Color.PINK);
         int namex = 150;
     
         g2d.setFont(new Font("Impact", Font.BOLD, 40));
@@ -304,107 +339,102 @@ public void reset() {
     }
     
     public void drawGameScreen(Graphics g2d) {
-        // Draw appropriate background based on current level
+        // Draw background depending on the level
         if (currentLevel == 1) {
             g2d.drawImage(gameBg.getImage(), 0, 0, getWidth(), getHeight(), this);
         } else if (currentLevel == 2) {
             g2d.drawImage(level2Bg.getImage(), 0, 0, getWidth(), getHeight(), this);
         }
     
-        // Draw level indicator and score
+        // Draw level and score
         g2d.setFont(new Font("Times New Roman", Font.BOLD, 20));
         g2d.setColor(Color.WHITE);
         g2d.drawString("Level: " + currentLevel, 700, 200);
         g2d.drawString("Score: " + score, 800, 200);
     
-        // Draw player and check level transition
-        if (player != null) {
-            player.drawChar(g2d);
-            if (currentLevel == 1 && player.getX() >= getWidth() - player.getWidth() && enemies.isEmpty()) {
-                currentLevel = 2;
-                player.setPosition(50, player.getY());
-                setupLevel2();
-            }
-        }
-    
-        ArrayList<Ranged> projectilesToRemove = new ArrayList<>();
+        // Make sure to update enemy movement if we're in the game screen
+        if (screen.equals("game")) {
+            if (!enemies.isEmpty()) {
+                // Get only the first enemy to act
+              // Draw only the first (active) enemy
+Enemy currentEnemy = enemies.peek(); // Get the first enemy
+if (currentEnemy != null) {
+    currentEnemy.bounceMove(getWidth(), getHeight()); // Move the enemy
+    //currentEnemy.followPlayer(player.getX(), player.getY()); // Enemy follows the player
+    currentEnemy.drawChar(g2d); // Draw only the active enemy
+}
+
         
-        // Handle projectiles and check for collisions
-        for (Ranged projectile : rangedWeap) {
-            if (projectile instanceof Sword) {
-                projectile.setX(projectile.getX() + 10); // Enemy missile moves right
-            } else {
-                projectile.setX(projectile.getX() - 15); // Player projectile moves left
-            }
-            
-            projectile.drawWeap(g2d);
-            
-            // Check for collision with player (if it's a Sword projectile)
-            if (projectile instanceof Sword && checkCollision(projectile, player)) {
-                projectilesToRemove.add(projectile);
-                decreaseScore();
-            } 
-            if (score == 0) {
-                g2d.clearRect(0, 0, getSize().width, getSize().height);
-                g2d.drawString("YOU LOSE", 200, 200);
-            } 
-            // Check for collision with enemy (if it's not a Sword projectile)
-            else if (!(projectile instanceof Sword)) {
-                Enemy currentEnemy = enemies.peek();
-                if (currentEnemy != null && checkCollision(projectile, currentEnemy)) {
-                    projectilesToRemove.add(projectile);
-                    currentEnemy.takeDamage();
-                    
-                    // If enemy's lives are zero, remove it from the queue
-                    if (currentEnemy.getScore() <= 0) {
-                        enemies.poll(); // Remove defeated enemy from the queue
-                        score += 1;
-                    }
+                // Draw all enemies but only the active one follows the player
+               
                 }
             }
-            
-            // Remove projectiles that are off-screen
+        
+        
+    
+        // Handle player character
+        if (player != null) {
+            player.drawChar(g2d);
+            checkLevelTransition();
+        }
+    
+        // Handle projectiles and remove out-of-screen ones
+        ArrayList<Ranged> projectilesToRemove = new ArrayList<>();
+        for (Ranged projectile : rangedWeap) {
+            projectile.setX(projectile.getX() + (projectile instanceof Sword ? 10 : -15));
+            projectile.drawWeap(g2d);
+        
+            // Check collision only with the current enemy
+            Enemy currentEnemy = enemies.peek();
+            if (currentEnemy != null && checkCollision(projectile, currentEnemy)) {
+                projectilesToRemove.add(projectile);
+                currentEnemy.takeDamage();
+        
+                if (currentEnemy.getScore() <= 0) {
+                    enemies.poll(); // Remove the defeated enemy
+                    score++;        // Update the score
+                }
+            }
+        
+            // Remove projectiles that leave the screen
             if (projectile.getX() < 0 || projectile.getX() > getWidth()) {
                 projectilesToRemove.add(projectile);
             }
         }
-        
         rangedWeap.removeAll(projectilesToRemove);
         
-        // Draw the current enemy
+    
+        // Draw current enemy
         Enemy currentEnemy = enemies.peek();
         if (currentEnemy != null) {
             currentEnemy.drawChar(g2d);
         }
     
-        // Handle level completion and game completion
+        // Display win message for level 2
         if (currentLevel == 2 && enemies.isEmpty()) {
-            // Game complete - both levels finished
             g2d.setFont(new Font("Impact", Font.BOLD, 100));
             g2d.setColor(Color.GREEN);
             g2d.drawString("GAME COMPLETE!", 200, 300);
-            
             if (!highScores.contains(score)) {
                 updateScores(score);
             }
-            
             g2d.setFont(new Font("Impact", Font.PLAIN, 40));
             g2d.setColor(Color.YELLOW);
             g2d.drawString("Press R to Restart", 200, 400);
             g2d.drawString("Press H to View High Scores", 200, 450);
-            return;
         } else if (currentLevel == 1 && enemies.isEmpty()) {
-            // Level 1 complete - prompt to move right
             g2d.setFont(new Font("Impact", Font.PLAIN, 30));
             g2d.setColor(Color.YELLOW);
             g2d.drawString("Level Complete! Move right to continue →", 400, 300);
         }
-    }
+    }        
+    
+
     private void decreaseScore() {
         score--;
         if (score <= 0) {
-            gameOver = true; // Set game over flag to true when lives reach 0
-            enemyFireTimer.stop(); // Stop enemy from firing
+            gameOver = true;
+            enemyFireTimer.stop();
         }
     }
 
@@ -420,12 +450,6 @@ public void reset() {
             y += 50;
         }
     }
-    
-    
-
-    
-    
-    
         
         private boolean checkCollision(Ranged projectile, Characters character) {
             Rectangle projectileBox = new Rectangle(
@@ -473,7 +497,6 @@ public void reset() {
             return false;
         }
         
-
     private void drawScreen(Graphics g2d) {
         switch (screen) {
             case "start":
@@ -515,8 +538,6 @@ public void reset() {
         g2d.drawString("Press R to Restart", 200, 500);
         g2d.drawString("Press H to View High Scores", 200, 550);
     }
-    
-    
 
     public void drawSelectScreen(Graphics g2d){
         if (player != null) {
@@ -534,23 +555,22 @@ public void reset() {
     
         }
     }
-
-    
-        public void fireEnemyWeapon() {
-            Enemy currentEnemy = enemies.peek();  // Get the enemy from the queue or list
-            if (currentEnemy != null && player != null) {
-                System.out.println("Enemy firing at player");
-        
-                // Adjust this to use the enemy's position rather than the player's position
-                Ranged projectile = new Sword(
-                    currentEnemy.getX() + currentEnemy.getWidth(), // X position near the enemy
-                    currentEnemy.getY() + currentEnemy.getHeight() / 2  // Y position at the middle of the enemy
-                );
-        
-                // Add the projectile to the rangedWeap collection
-                rangedWeap.add(projectile);
-            }
+    public void fireEnemyWeapon() {
+        Enemy currentEnemy = enemies.peek(); // Only act on the first enemy
+        if (currentEnemy != null) {
+            // Follow player
+          //  currentEnemy.followPlayer(player.getX(), player.getY());
+          currentEnemy.bounceMove(getWidth(), getHeight());
+            // Fire projectile
+            Ranged projectile = new Sword(
+                currentEnemy.getX() + currentEnemy.getWidth(),
+                currentEnemy.getY() + currentEnemy.getHeight() / 2
+            );
+            rangedWeap.add(projectile);
         }
+    }
+    
+    
 
         public void takeDamage() {
             this.score--; // Decrease player lives
@@ -561,8 +581,6 @@ public void reset() {
             }
         }
         
-        
-    
     public void fireWeapon() {
         System.out.println("fireWeapon called"); // Debug print
         if (player != null && !enemies.isEmpty()) {
@@ -602,26 +620,28 @@ public void reset() {
         }
 
     }
-    
-    
 
     @Override
     public void keyTyped(KeyEvent e) {
         // Not used
     }
 
+
     @Override
     public void keyPressed(KeyEvent e) {
         key = e.getKeyCode();
 
         System.out.println(key);
-        int speed= 10;
         if (gameOver) return;
-    
+
         if (key == 32) {
             screen = "choose"; // Switch to choose screen on space
             enemyFireTimer.stop();
         }
+
+        if (player == null) return; // Check if the player is selected
+
+        int speed = player.getSpeed(); // Get the speed of the selected character
 
         if (key == 38) { // Up arrow key
             player.setY(player.getY() - speed); // Move up
@@ -635,49 +655,46 @@ public void reset() {
         if (key == 39) { // Right arrow key
             player.setX(player.getX() + speed); // Move right
         }
-    
+
         if (key == 49) {
             screen = "selection";
             player = charList.get(0);
-            player.setPosition(800, 500); // Set position to (800, 300)
+            player.setPosition(800, 500);
         }
         if (key == 50) {
             screen = "selection";
             player = charList.get(1);
-            player.setPosition(800, 500); // Set position to (800, 300)
+            player.setPosition(800, 500);
         }
         if (key == 51) {
             screen = "selection";
             player = charList.get(2);
-            player.setPosition(800, 500); // Set position to (800, 300)
+            player.setPosition(800, 500);
         }
         if (key == 52) {
             screen = "selection";
             player = charList.get(3);
-            player.setPosition(800, 500); // Set position to (800, 300)
+            player.setPosition(800, 500);
         }
         if (key == 53) {
             screen = "selection";
             player = charList.get(4);
-            player.setPosition(800, 500); // Set position to (800, 300)
+            player.setPosition(800, 500);
         }
+
         if (gameOver || enemies.isEmpty()) {
             enemyFireTimer.stop();
             if (key == KeyEvent.VK_R) {
                 reset();
                 screen = "game";
-                // Don't start timer until player presses Enter again
             } else if (key == KeyEvent.VK_H) {
                 screen = "highscores";
             }
         }
-    
-        // Add a key press to switch to game screen
         if (key == KeyEvent.VK_ENTER) {
             if (player != null) {
                 screen = "game";
                 System.out.println("Switching to Game Screen");
-                // Only start enemy firing when entering game screen with a selected player
                 enemyFireTimer.start();
             } else {
                 System.out.println("No player selected. Cannot switch to game.");
@@ -685,22 +702,20 @@ public void reset() {
             repaint();
         }
         if (key == KeyEvent.VK_H) { // Press 'H' to view high scores
-    screen = "highscores";
-    repaint();
-}
+            screen = "highscores";
+            repaint();
+        }
 
-    
         if (key == 70) { // f key
             fireWeapon();
         }
 
-        if (key==48);
-        reset=true;
+        if (key == 48) {
+            reset = true;
+        }
     }
-   
 
-    
-    
+
     
     @Override
     public void keyReleased(KeyEvent e) {
@@ -709,13 +724,10 @@ public void reset() {
 
     @Override
     public void mouseDragged(MouseEvent arg0) {
-        // Not used
     }
 
     @Override
     public void mouseMoved(MouseEvent arg0) {
-       // x = arg0.getX();
-       // y = arg0.getY();
     }
 
     @Override
@@ -743,6 +755,5 @@ public void reset() {
 
     @Override
     public void mouseReleased(MouseEvent arg0) {
-        // Not used
     }
 }

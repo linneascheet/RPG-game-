@@ -1,1 +1,2 @@
-You have 5 enemies left
+High Scores:
+14

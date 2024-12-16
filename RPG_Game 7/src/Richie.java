@@ -8,7 +8,7 @@ public class Richie extends Characters {
 
     public Richie(int x, int y) {
         // Call the updated Characters constructor with the additional parameter
-        super(x, y, 400, 300, 1000, 5, 10, 1, new ImageIcon("Richie.png"),  new slingshot(x,y+100), setList());
+        super(x, y, 400, 300, 30, 5, 10, 1, new ImageIcon("Richie.png"),  new slingshot(x,y+100), setList());
         
         // Set the weapon's position based on the character's position
         super.getWeapon().setX(super.getX() + super.getWidth());

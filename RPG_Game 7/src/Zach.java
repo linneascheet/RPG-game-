@@ -8,7 +8,7 @@ public class Zach extends Characters {
 
     public Zach(int x, int y) {
         // Call the updated Characters constructor with the additional parameter
-        super(x, y, 400, 300, 1000, 5, 10, 1, new ImageIcon("Zach.png"), new Hammer(x-30,y+100), setList());
+        super(x, y, 400, 300, 25, 5, 10, 1, new ImageIcon("Zach.png"), new Hammer(x-30,y+100), setList());
         
         // Set the weapon's position based on the character's position
         super.getWeapon().setX(super.getX() + super.getWidth());

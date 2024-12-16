@@ -8,7 +8,7 @@ public class Reese extends Characters {
 
     public Reese(int x, int y) {
         // Call the updated Characters constructor with the additional parameter
-        super(x, y, 400, 300, 1000, 5, 10, 1, new ImageIcon("Reese.png"), new Laser(x-200,y-50), setList());
+        super(x, y, 400, 300, 15, 5, 10, 1, new ImageIcon("Reese.png"), new Laser(x-200,y-50), setList());
         
         // Set the weapon's position based on the character's position
         super.getWeapon().setX(super.getX() + super.getWidth());

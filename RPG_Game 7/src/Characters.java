@@ -53,8 +53,8 @@ public class Characters {
         pic = p;
         weap = we;
         weaponList = list; 
-    }
 
+    }
 
     public int getHealth() {
         return health;
@@ -150,4 +150,9 @@ public class Characters {
     public void drawChar(Graphics g2d) {
         g2d.drawImage(pic.getImage(), x, y, w, h, null); 
     }
+    public void move() {
+        x += dx * speed;
+        y += dy * speed;
+    }
+    
 }
