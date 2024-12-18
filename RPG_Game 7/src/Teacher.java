@@ -18,7 +18,7 @@ public String toString(){
     return "Teacher";
 }
 public Teacher(int x, int y){ 
-    super(x, y, 270, 290, 1000, 5, 10, 1, new ImageIcon("scaryteach.png"), new Sword(x+130,y), setList());
+    super(x, y, 170, 200, 1000, 5, 10, 1, new ImageIcon("scaryteach.png"), new Sword(x+130,y), setList());
         
         // Set the weapon's position based on the character's position
         super.getWeapon().setX(super.getX() + super.getWidth());

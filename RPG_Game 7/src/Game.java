@@ -22,6 +22,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     private ImageIcon startBg;
     private ImageIcon chooseBg; 
     private ImageIcon gameBg;
+    private ImageIcon selectBg;
     private String welcome;
     private double time;
     private int i;
@@ -31,6 +32,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     private boolean reset;
     private boolean gameOver;
     private ImageIcon gifImage;
+    private ImageIcon gifImage1;
     private File saveFile;
     private int currentLevel;
     private ImageIcon level2Bg;
@@ -53,15 +55,18 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         rangedWeap = new ArrayList<Ranged>();
         startBg = new ImageIcon("startbackground.png");
         chooseBg = new ImageIcon("classroom1.png");
+        selectBg = new ImageIcon("chalk.jpg");
         gameBg = new ImageIcon("creepyschool.jpg");
         welcome = "Welcome to Linnea's School Game";
         saveFile = new File("saved_file2.0.txt");
         time = System.currentTimeMillis();
         enemies = setEs();
-        score = 3;
+        score = 2;
         reset = false;
         gameOver = false;
         gifImage = new ImageIcon("giphy.gif");
+        gifImage1 = new ImageIcon("levelcomplete.gif");
+
        
         highScores = new ArrayList<>();
         loadScores();
@@ -69,12 +74,13 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         level2Bg = new ImageIcon("school2.png"); // Add your level 2 background image
         level2Enemies = new LinkedList<>();
         // Create the timer but don't start it yet
-        enemyFireTimer = new Timer(2000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fireEnemyWeapon(); // Calls the updated method that includes following and firing
-            }
-        });
+       enemyFireTimer = new Timer(1000, new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        fireEnemyWeapon(); // Calls the updated method that includes following and firing
+    }
+});
+
         
     }
 
@@ -99,7 +105,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     
         // Set faster speeds for enemies in level 2
         for (Enemy enemy : level2Enemies) {
-            enemy.setSpeed(8); // Increase speed (adjust as needed)
+            enemy.setSpeed(12); // Increase speed (adjust as needed)
         }
     
         enemies = level2Enemies;
@@ -320,7 +326,7 @@ public void reset() {
     
 
         //g2d.drawString("Select your character to begin!", 400, 150);
-        g2d.setColor(Color.PINK);
+        g2d.setColor(Color.ORANGE);
         int namex = 150;
     
         g2d.setFont(new Font("Impact", Font.BOLD, 40));
@@ -347,10 +353,10 @@ public void reset() {
         }
     
         // Draw level and score
-        g2d.setFont(new Font("Times New Roman", Font.BOLD, 20));
+        g2d.setFont(new Font("IMPACT", Font.BOLD, 50));
         g2d.setColor(Color.WHITE);
-        g2d.drawString("Level: " + currentLevel, 700, 200);
-        g2d.drawString("Score: " + score, 800, 200);
+        g2d.drawString("Level: " + currentLevel, 70, 100);
+        g2d.drawString("Score: " + score, 70, 150);
     
         // Make sure to update enemy movement if we're in the game screen
         if (screen.equals("game")) {
@@ -436,9 +442,20 @@ public void reset() {
             g2d.drawString("Press R to Restart", 200, 400);
             g2d.drawString("Press H to View High Scores", 200, 450);
         } else if (currentLevel == 1 && enemies.isEmpty()) {
-            g2d.setFont(new Font("Impact", Font.PLAIN, 30));
-            g2d.setColor(Color.YELLOW);
-            g2d.drawString("Level Complete! Move right to continue →", 400, 300);
+            g2d.setFont(new Font("Impact", Font.PLAIN, 70));
+            g2d.setColor(Color.RED);
+
+         //   ImageIcon buttonImage = new ImageIcon("notebook1.png");
+          //  g2d.drawImage(buttonImage.getImage(), 400, 280, 700, 300, this);
+
+            int gifX = 460; // X-coordinate for the GIF
+            int gifY = 300; // Y-coordinate for the GIF
+            g2d.drawImage(gifImage1.getImage(), gifX, gifY, this);
+           
+
+
+           // g2d.drawString("Level Complete! Move right to continue →", 400, 300);
+        
         }
     }
     
@@ -447,9 +464,11 @@ public void reset() {
         score--;
         if (score <= 0) {
             gameOver = true;
+            screen = "game"; // Ensure it transitions to the lose screen
             enemyFireTimer.stop();
         }
     }
+    
 
     public void drawHighscoreScreen(Graphics g2d) {
         g2d.setFont(new Font("Impact", Font.BOLD, 50));
@@ -509,32 +528,48 @@ public void reset() {
         
             return false;
         }
+        private void drawLoseScreen(Graphics g2d) {
+            // Draw the "You Lose" message
+            g2d.setFont(new Font("Impact", Font.BOLD, 100));
+            g2d.setColor(Color.RED);
+            g2d.drawString("YOU LOSE", getWidth() / 2 - 200, getHeight() / 2);
         
-    private void drawScreen(Graphics g2d) {
-        switch (screen) {
-            case "start":
-                drawStartScreen(g2d);
-                break;
-            case "choose":
-                drawChooseScreen(g2d);
-                break;
-            case "selection":
-                drawSelectScreen(g2d);
-                break;
-            case "game":
-                drawGameScreen(g2d);
-                break; 
-            case "highscores":
-                drawHighscoreScreen(g2d);
-                break;
-            case "win":
-                drawWinScreen(g2d);
-            break;
-                
-            default:
-                break;
+            // Optional: Add instructions for restarting the game
+            g2d.setFont(new Font("Impact", Font.PLAIN, 40));
+            g2d.setColor(Color.YELLOW);
+            g2d.drawString("Press R to Restart", getWidth() / 2 - 150, getHeight() / 2 + 100);
         }
-    }
+        
+        
+        private void drawScreen(Graphics g2d) {
+            switch (screen) {
+                case "start":
+                    drawStartScreen(g2d);
+                    break;
+                case "choose":
+                    drawChooseScreen(g2d);
+                    break;
+                case "selection":
+                    drawSelectScreen(g2d);
+                    break;
+                case "game":
+                    if (gameOver) {
+                        drawLoseScreen(g2d);
+                    } else {
+                        drawGameScreen(g2d);
+                    }
+                    break;
+                case "highscores":
+                    drawHighscoreScreen(g2d);
+                    break;
+                case "win":
+                    drawWinScreen(g2d);
+                    break;
+                default:
+                    break;
+            }
+        }
+        
     public void drawWinScreen(Graphics g2d) {
         g2d.setFont(new Font("Impact", Font.BOLD, 100));
         g2d.setColor(Color.GREEN);
@@ -553,11 +588,28 @@ public void reset() {
     }
 
     public void drawSelectScreen(Graphics g2d){
+        g2d.drawImage(selectBg.getImage(), 0, 0, getWidth(), getHeight(), this);
         if (player != null) {
             player.drawChar(g2d);
-            g2d.setFont(new Font("Times new Roman", Font.BOLD, 30));
-            g2d.drawString("You picked " + player.toString(), 100, 200);
+            g2d.setFont(new Font("IMPACT", Font.BOLD, 50));
+            g2d.drawString("You picked " + player.toString(), 370, 200);
+
+           
         }
+        g2d.drawString("click return to begin! " , 320, 250);
+        ImageIcon buttonImage = new ImageIcon("notebook1.png");
+        g2d.drawImage(buttonImage.getImage(), 100, 280, 500, 500, this);
+        g2d.setColor(Color.PINK);
+        g2d.drawString("INSTRUCTIONS: " ,190, 380);
+        g2d.setFont(new Font("IMPACT", Font.BOLD, 30));
+
+        g2d.drawString("-PRESS F TO FIRE AT ENEMY " , 190, 420);
+
+        g2d.drawString("-USE ARROW KEYS TO DODGE" , 190, 450);
+        g2d.drawString("ENEMY'S WEAPONS " , 190, 480);
+        g2d.drawString("-PRESS RETURN TO START " , 190, 510);
+        
+
     }
     public void attack(){
         if(player.getWeapon() instanceof Ranged){
@@ -585,14 +637,15 @@ public void reset() {
     
     
 
-        public void takeDamage() {
-            this.score--; // Decrease player lives
-        
-            if (this.score <= 0) {
-                System.out.println("Player has no lives left. Game over.");
-                // Add any additional game-over handling code here, like resetting the game or ending the session
-            }
-        }
+       public void takeDamage() {
+    this.score -= 2; // Decrease score by 2
+
+    if (this.score <= 0) {
+        System.out.println("Player has no lives left. Game over.");
+        // Add any additional game-over handling code here, like resetting the game or ending the session
+    }
+}
+
         
     public void fireWeapon() {
         System.out.println("fireWeapon called"); // Debug print

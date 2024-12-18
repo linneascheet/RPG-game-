@@ -16,10 +16,10 @@ public class Zach extends Characters {
 
     @Override
     public String toString() {
-        return "You picked Zach! Health: " + super.getHealth() + 
-               " Speed: " + super.getSpeed() + 
-               " Damage: " + super.getDamage() + 
-               " Stamina: " + super.getStamina();
+        return "Zach! Health: " + super.getHealth() + 
+               " Speed: " + super.getSpeed();
+       //        " Damage: " + super.getDamage() + 
+        //       " Stamina: " + super.getStamina();
     }
 
     @Override

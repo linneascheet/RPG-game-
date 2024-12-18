@@ -17,9 +17,9 @@ public class Reese extends Characters {
     @Override
     public String toString() {
         return "Reese! Health: " + super.getHealth() + 
-               " Speed: " + super.getSpeed() + 
-               " Damage: " + super.getDamage() + 
-               " Stamina: " + super.getStamina();
+               " Speed: " + super.getSpeed(); 
+           //    " Damage: " + super.getDamage() + 
+            //   " Stamina: " + super.getStamina();
     }
 
     @Override
