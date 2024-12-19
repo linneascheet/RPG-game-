@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Export JAR",
+        "type": "shell",
+        "command": "jar",
+        "args": [
+          "cfe",
+          "MyApp.jar",
+          "Main",
+          "-C",
+          "out",
+          "."
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [],
+        "detail": "Creates a JAR file from compiled Java classes"
+      }
+    ]
+  }
+  

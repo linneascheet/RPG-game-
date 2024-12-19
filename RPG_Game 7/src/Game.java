@@ -149,7 +149,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     private void updateScores(int newScore) {
         highScores.add(newScore);
         highScores.sort((a, b) -> b - a); // Sort in descending order
-        if (highScores.size() > 10) {
+        if (highScores.size() > 8) {
             highScores = new ArrayList<>(highScores.subList(0, 10)); // Keep top 10 scores
         }
         saveScores();
@@ -592,11 +592,11 @@ public void reset() {
         if (player != null) {
             player.drawChar(g2d);
             g2d.setFont(new Font("IMPACT", Font.BOLD, 50));
-            g2d.drawString("You picked " + player.toString(), 370, 200);
+            g2d.drawString("You picked " + player.toString(), 320, 230);
 
            
         }
-        g2d.drawString("click return to begin! " , 320, 250);
+        g2d.drawString("click return to begin! " , 420, 300);
         ImageIcon buttonImage = new ImageIcon("notebook1.png");
         g2d.drawImage(buttonImage.getImage(), 100, 280, 500, 500, this);
         g2d.setColor(Color.PINK);
@@ -606,7 +606,7 @@ public void reset() {
         g2d.drawString("-PRESS F TO FIRE AT ENEMY " , 190, 420);
 
         g2d.drawString("-USE ARROW KEYS TO DODGE" , 190, 450);
-        g2d.drawString("ENEMY'S WEAPONS " , 190, 480);
+        g2d.drawString("ENEMY'S WEAPONS " , 200, 480);
         g2d.drawString("-PRESS RETURN TO START " , 190, 510);
         
 
@@ -748,14 +748,20 @@ public void reset() {
             player.setPosition(800, 500);
         }
 
-        if (gameOver || enemies.isEmpty()) {
-            enemyFireTimer.stop();
-            if (key == KeyEvent.VK_R) {
-                reset();
-                screen = "game";
-            } else if (key == KeyEvent.VK_H) {
+        if (key == KeyEvent.VK_R) {
+            reset();
+            screen = "game";
+            gameOver = false;
+            enemyFireTimer.start();
+            return;
+        }
+    
+        // If game is over, only allow R key and H key
+        if (gameOver) {
+            if (key == KeyEvent.VK_H) {
                 screen = "highscores";
             }
+            return;  // Don't process other keys if game is over
         }
         if (key == KeyEvent.VK_ENTER) {
             if (player != null) {
@@ -776,10 +782,10 @@ public void reset() {
             fireWeapon();
         }
 
-        if (key == 48) {
-            reset = true;
+      //  if (key == ) {
+         //   reset = true;
         }
-    }
+    
 
 
     
