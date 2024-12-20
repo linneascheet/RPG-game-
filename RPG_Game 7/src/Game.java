@@ -37,6 +37,7 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
     private int currentLevel;
     private ImageIcon level2Bg;
     private Queue<Enemy> level2Enemies;
+    private Sound p;
 
 
 
@@ -58,14 +59,16 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         selectBg = new ImageIcon("chalk.jpg");
         gameBg = new ImageIcon("creepyschool.jpg");
         welcome = "Welcome to Linnea's School Game";
-        saveFile = new File("saved_file2.0.txt");
+        saveFile = new File("saved_file2.0.txt");  
         time = System.currentTimeMillis();
         enemies = setEs();
-        score = 2;
+        score = 3;
         reset = false;
         gameOver = false;
         gifImage = new ImageIcon("giphy.gif");
         gifImage1 = new ImageIcon("levelcomplete.gif");
+        p=new Sound();
+        p.playmusic("sound.wav"); 
 
        
         highScores = new ArrayList<>();
@@ -102,10 +105,14 @@ public class Game extends JPanel implements Runnable, KeyListener, MouseListener
         level2Enemies.add(new Teacher(500, 300));
         level2Enemies.add(new Teacher(550, 100));
         level2Enemies.add(new Teacher(600, 200));
+        level2Enemies.add(new Teacher(600, 200));
+        level2Enemies.add(new Teacher(580, 200));
+        level2Enemies.add(new Teacher(580, 200));
+    
     
         // Set faster speeds for enemies in level 2
         for (Enemy enemy : level2Enemies) {
-            enemy.setSpeed(12); // Increase speed (adjust as needed)
+            enemy.setSpeed(7); // Increase speed (adjust as needed)
         }
     
         enemies = level2Enemies;
@@ -244,9 +251,14 @@ public void reset() {
     public Queue<Enemy> setEs() {
         Queue<Enemy> temp = new LinkedList<>();
         temp.add(new Woolweaver(300, 500));
-        temp.add(new Woolweaver(200, 500));
-        temp.add(new Woolweaver(100, 500));
-        temp.add(new Woolweaver(30, 500));
+        temp.add(new Woolweaver(200, 800));
+        temp.add(new Woolweaver(100, 550));
+        temp.add(new Woolweaver(130, 600));
+        temp.add(new Woolweaver(220, 700));
+        temp.add(new Woolweaver(160, 800));
+        temp.add(new Woolweaver(360, 500));
+
+
 
         return temp;
     }
@@ -267,14 +279,14 @@ public void reset() {
                 repaint();
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Print stack trace for debugging
+            e.printStackTrace(); 
         }
     }
 
     public void paint(Graphics g) {
         Graphics2D twoDgraph = (Graphics2D) g;
         if (back == null) {
-            back = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB); // Corrected initialization
+            back = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB); 
         }
 
         Graphics g2d = back.createGraphics();
@@ -308,17 +320,15 @@ public void reset() {
         g2d.drawImage(chooseBg.getImage(), 0, 0, getWidth(), getHeight(), this);
         g2d.setFont(new Font("Impact", Font.BOLD, 50));
         g2d.setColor(Color.ORANGE);
-        int gifX = 460; // X-coordinate for the GIF
-        int gifY = 100; // Y-coordinate for the GIF
+        int gifX = 460;
+        int gifY = 100; 
 
         g2d.drawImage(gifImage.getImage(), gifX, gifY, this);
         ImageIcon buttonImage = new ImageIcon("notebook1.png"); // Load the image
-        g2d.drawImage(buttonImage.getImage(), 0, 350, 300, 200, this); // Draw the image at specified location
-        g2d.drawImage(buttonImage.getImage(), 405, 350, 300, 200, this); // Draw the image at specified location
-        g2d.drawImage(buttonImage.getImage(), 805, 350, 320, 200, this); // Draw the image at specified location
-        g2d.drawImage(buttonImage.getImage(), 1205, 350, 320, 200, this); // Draw the image at specified location
-
-
+        g2d.drawImage(buttonImage.getImage(), 0, 350, 300, 200, this); 
+        g2d.drawImage(buttonImage.getImage(), 405, 350, 300, 200, this);
+        g2d.drawImage(buttonImage.getImage(), 805, 350, 320, 200, this); 
+        g2d.drawImage(buttonImage.getImage(), 1205, 350, 320, 200, this); 
        
         g2d.drawString("press 1", 50, 450);
         g2d.drawString("press 2", 450, 450);
@@ -336,7 +346,7 @@ public void reset() {
             c.drawChar(g2d);
             g2d.drawString(c.getName(), namex, 500);
     
-            // Draw the character's weapon if it has one
+           
             Weapons weapon = c.getWeapon();
             if (weapon != null) {
                 weapon.drawWeap(g2d); // Draw the weapon
@@ -360,7 +370,7 @@ public void reset() {
         g2d.drawString("Level: " + currentLevel, 70, 100);
         g2d.drawString("Score: " + score, 70, 150);
     
-        // Make sure to update enemy movement if we're in the game screen
+       
         if (screen.equals("game")) {
             if (!enemies.isEmpty()) {
                 // Get only the first enemy to act
@@ -384,7 +394,7 @@ public void reset() {
             projectile.setX(projectile.getX() + (projectile instanceof Sword ? 10 : -15));
             projectile.drawWeap(g2d);
     
-            // Check if this is an enemy projectile hitting the player
+           
             if (projectile instanceof Sword && checkCollision(projectile, player)) {
                 projectilesToRemove.add(projectile);
                 decreaseScore(); // Decrease player's score/lives
@@ -398,7 +408,7 @@ public void reset() {
                 currentEnemy.takeDamage();
     
                 if (currentEnemy.getScore() <= 0) {
-                    enemies.poll(); // Remove the defeated enemy
+                    enemies.poll(); 
                     score++;       // Update the score
                 }
             }
@@ -536,7 +546,7 @@ public void reset() {
             g2d.setColor(Color.RED);
             g2d.drawString("YOU LOSE", getWidth() / 2 - 200, getHeight() / 2);
         
-            // Optional: Add instructions for restarting the game
+           
             g2d.setFont(new Font("Impact", Font.PLAIN, 40));
             g2d.setColor(Color.YELLOW);
             g2d.drawString("Press R to Restart", getWidth() / 2 - 150, getHeight() / 2 + 100);

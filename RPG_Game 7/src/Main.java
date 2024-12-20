@@ -4,8 +4,8 @@ import java.awt.event.WindowListener;
 import javax.swing.*;
 
 public class Main extends JFrame{
-	private static final int WIDTH =1800;
-	private static final int HEIGHT=1600;
+	private static final int WIDTH =1550;
+	private static final int HEIGHT=900;
 	
 	public Main () {
 		super("KeyListener Demo");
