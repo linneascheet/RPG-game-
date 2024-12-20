@@ -283,6 +283,7 @@ public void reset() {
       
         drawScreen(g2d);
         welcome.substring(0, i);
+
         twoDgraph.drawImage(back, null, 0, 0);
     }
 
@@ -293,6 +294,7 @@ public void reset() {
 
     public void drawStartScreen(Graphics g2d) {
         g2d.drawImage(startBg.getImage(), 0, 0, getWidth(), getHeight(), this);
+        g2d.drawString("press space to continue", 440, 500);
         g2d.drawString(welcome.substring(0, i), 380, 420);
         if (i < welcome.length()) {
             if (System.currentTimeMillis() - time > 100) {
